@@ -6,7 +6,7 @@
 const int paddleHeight = 16;
 const int paddleWidth = 48;
 const SDL_Color paddleColor = { 0xFF, 0x00, 0x00, 0xFF };
-const float maxPaddleVelocity = 3.15;
+const float maxPaddleVelocity = 0.315;
 const float paddleAcceleration = 0.0888f;
 const float paddleDeceleration = 0.83f;
 
@@ -49,7 +49,7 @@ void Paddle::update(int milliseconds) {
 	default: break;
 	}
 
-	m_x += m_velocity;
+	m_x += m_velocity * milliseconds;
 	if (m_x < 0) {
 		m_x = 0.0f;
 		m_direction = NONE;

@@ -1,7 +1,6 @@
 #ifndef PADDLE_H_
 #define PADDLE_H_
 
-
 class GraphicsManager;
 struct SDL_Rect;
 

@@ -1,30 +1,44 @@
 #include "Clock.h"
+#include <Windows.h>
 
-Clock::Clock(float startTimeMillis) {
-	m_timeElapsed = millisToNano(startTimeMillis);
-	m_timeScale = 1.0f;
-	m_isPaused = false;
-}
+int64_t Clock::s_cyclesPerSecond;
 
-//Clock::Clock(nanoseconds startTimeNano) {
-//	m_timeElapsed = startTimeNano;
-//	m_timeScale = 1.0f;
-//	m_isPaused = false;
-//}
+Clock::Clock(float startTimeSeconds) : m_isPaused(false), m_timeScale(1.0f), m_timeCycles(secondsToCycles(startTimeSeconds)) 
+{ }
 
 Clock::~Clock() {}
 
-void Clock::update(float milliseconds) {
+//Call when game starts
+void Clock::init() {
+	LARGE_INTEGER freq;
+	QueryPerformanceFrequency(&freq);
+	s_cyclesPerSecond = freq.QuadPart;
+}
+
+int64_t Clock::getFrequency() const {
+	return s_cyclesPerSecond;
+}
+
+int64_t Clock::getTimeCycles() const {
+	return m_timeCycles;
+}
+
+float Clock::calcDeltaSeconds(const Clock& other) {
+	int64_t dt = m_timeCycles - other.m_timeCycles;
+	return cyclesToSeconds(dt);
+}
+
+void Clock::update(float dtRealSeconds) {
 	if (!m_isPaused) {
-		nanoseconds scaledTime = millisToNano(milliseconds * m_timeScale);
-		m_timeElapsed += scaledTime;
+		int64_t dtScaledCycles = secondsToCycles(dtRealSeconds * m_timeScale);
+		m_timeCycles += dtScaledCycles;
 	}
 }
 
-void Clock::update(nanoseconds nanos) {
+void Clock::update(int64_t dtCycles) {
 	if (!m_isPaused) {
-		nanoseconds scaledTime = duration_cast<nanoseconds>(nanos * m_timeScale);
-		m_timeElapsed += scaledTime;
+		int64_t dtScaledCycles = dtCycles * m_timeScale;
+		m_timeCycles += dtScaledCycles;
 	}
 }
 
@@ -42,16 +56,4 @@ void Clock::setTimeScale(float scale) {
 
 float Clock::getTimeScale() const {
 	return m_timeScale;
-}
-
-void Clock::reset() {
-	m_timeElapsed = (nanoseconds) 0;
-}
-
-float Clock::getTimeElapsed() {
-	return nanoToMillis(m_timeElapsed);
-}
-
-nanoseconds Clock::getTimeElapsedNano() {
-	return m_timeElapsed;
 }

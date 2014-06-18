@@ -1,38 +1,39 @@
 #ifndef CLOCK_H_
 #define CLOCK_H_
-
-#include <chrono>
-using namespace std::chrono;
+#include <stdint.h>
 
 class Clock{
 public: 
-	Clock(float startTimeMillis = 0.0f);
-	//Clock(nanoseconds startTimeNano = (nanoseconds)(0));
+	explicit Clock(float startTimeSeconds = 0.0f);
 	~Clock();
 
-	void update(float millis);
-	void update(nanoseconds nanos);
+	static void init();
+
+	int64_t getFrequency() const;
+	int64_t getTimeCycles() const;
+	float calcDeltaSeconds(const Clock& other);
+
+	void update(float dtRealSeconds);
+	void update(int64_t cycles);
 
 	void setPaused(bool isPaused);
 	bool isPaused() const;
 	void setTimeScale(float scale);
 	float getTimeScale() const;
-	void reset();
-
-	float getTimeElapsed();
-	nanoseconds getTimeElapsedNano();
 
 private:
-	nanoseconds m_timeElapsed;
-	float m_timeScale;
+	static int64_t s_cyclesPerSecond;
 	bool m_isPaused;
+	float m_timeScale;
+	int64_t m_timeCycles;
 
-	static inline nanoseconds millisToNano(float millis) {
-		return duration_cast<nanoseconds>((duration<float>)(millis * 1000.f));
+	static inline int64_t secondsToCycles(float timeSeconds) {
+		return (int64_t)(timeSeconds * s_cyclesPerSecond);
 	}
 
-	static inline float nanoToMillis(nanoseconds nanos) {
-		return (float) duration<float>((nanos / 1000)).count();
+	//only use with small time durations
+	static inline float cyclesToSeconds(int64_t timeCycles) {
+		return (float)timeCycles / s_cyclesPerSecond;
 	}
 };
 

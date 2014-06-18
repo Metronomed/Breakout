@@ -1,5 +1,7 @@
 #include "Game.h"
+#include <Windows.h>
 #include "SDL.h"
+#include <iostream>
 #include "GraphicsManager.h"
 #include "InputManager.h"
 #include "SpriteSheet.h"
@@ -7,7 +9,7 @@
 #include "Wall.h"
 #include <algorithm>
 
-const Uint32 maxFrameTime = 5 * 1000 / 60;
+const float maxFrameTime = 5 * 1000.0 / 60;
 int Game::gameScreenWidth = 480;
 int Game::gameScreenHeight = 640;
 
@@ -18,7 +20,9 @@ Block* blocks[blockR][blockC];
 Wall* walls[3];
 
 Game::Game() {
-	m_gameClock = Clock(0.0f);
+	m_gameClock = Clock();
+	m_gameClock.init();
+	std::cout << m_gameClock.getFrequency() << std::endl;
 	SDL_Init(0);
 	gGraphicsManager.startUp(gameScreenWidth, gameScreenHeight);
 	gInputManager.startUp();
@@ -47,10 +51,13 @@ Game::~Game() {
 void Game::runGame() {
 	SDL_Event event;
 	bool running = true;
-	Uint32 deltaTime = 1000./FPS;
+	float deltaTime = 1000.0/FPS;
+
+	LARGE_INTEGER startTimeData;
+	QueryPerformanceCounter(&startTimeData);
+	int64_t startTime = startTimeData.QuadPart;
 
 	while (running) {
-		Uint32 startTime = SDL_GetTicks();
 		//process events
 		while (SDL_PollEvent(&event)) {
 			switch (event.type) {
@@ -78,13 +85,23 @@ void Game::runGame() {
 			m_player.stopPaddle();
 		}
 
-		updateGame(std::min(deltaTime, maxFrameTime));
+		updateGame(deltaTime);
 		drawGame();
 
-		deltaTime = SDL_GetTicks() - startTime;
-		if ((deltaTime) < 1000. / FPS) {
-			SDL_Delay(1000. / FPS - deltaTime);
+		LARGE_INTEGER endTimeData;
+		QueryPerformanceCounter(&endTimeData);
+		int64_t endTime = endTimeData.QuadPart;
+		deltaTime = 1000.0 * (float)(endTime - startTime) / (float) m_gameClock.getFrequency();
+
+		if (deltaTime > maxFrameTime) {
+			deltaTime = maxFrameTime;
 		}
+
+		if ((deltaTime) < 1000.0 / FPS) {
+			//SDL_Delay(1000.0 / FPS - deltaTime);
+		}
+
+		startTime = endTime;
 	}
 }
 
