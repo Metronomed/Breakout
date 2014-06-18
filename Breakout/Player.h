@@ -15,13 +15,13 @@ public:
 	void movePaddleLeft();
 	void movePaddleRight();
 	void stopPaddle();
-	void drawPaddle(const GraphicsManager& gm);
+	void drawPaddle(const GraphicsManager& gm, float alpha);
 
 	void resetPaddle();
 
 	void addScore(int add);
 	int getScore();
-	void update(int milliseconds);
+	void update();
 
 	static SDL_Scancode PLAYER_KEY_LEFT;
 	static SDL_Scancode PLAYER_KEY_RIGHT;

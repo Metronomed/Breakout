@@ -13,11 +13,12 @@ public:
 	static int gameScreenHeight;
 private:
 	void runGame();
-	void drawGame();
-	void updateGame(unsigned int milliseconds);
+	void drawGame(float alpha);
+	void updateGame();
 
 	Clock m_gameClock;
 	int FPS;
+	int updateRate;
 	Player m_player;
 
 };

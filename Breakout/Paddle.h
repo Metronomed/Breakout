@@ -9,8 +9,8 @@ public:
 	Paddle();
 	~Paddle();
 
-	void draw(const GraphicsManager& gm);
-	void update(int milliseconds);
+	void draw(const GraphicsManager& gm, float alpha);
+	void update();
 	void reset();
 
 	void moveLeft();

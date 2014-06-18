@@ -26,8 +26,8 @@ void Player::stopPaddle() {
 	m_paddle.stopMoving();
 }
 
-void Player::drawPaddle(const GraphicsManager& gm) {
-	m_paddle.draw(gm);
+void Player::drawPaddle(const GraphicsManager& gm, float alpha) {
+	m_paddle.draw(gm, alpha);
 }
 
 void Player::resetPaddle() {
@@ -42,6 +42,6 @@ int Player::getScore() {
 	return m_score;
 }
 
-void Player::update(int milliseconds) {
-	m_paddle.update(milliseconds);
+void Player::update() {
+	m_paddle.update();
 }

@@ -6,7 +6,7 @@
 const int paddleHeight = 16;
 const int paddleWidth = 48;
 const SDL_Color paddleColor = { 0xFF, 0x00, 0x00, 0xFF };
-const float maxPaddleVelocity = 0.315;
+const float maxPaddleVelocity = 3.15;
 const float paddleAcceleration = 0.0888f;
 const float paddleDeceleration = 0.83f;
 
@@ -18,8 +18,8 @@ Paddle::~Paddle() {
 
 }
 
-void Paddle::draw(const GraphicsManager& gm) {
-	SDL_Rect paddleRect = { m_x, m_y, paddleWidth, paddleHeight };
+void Paddle::draw(const GraphicsManager& gm, float alpha) {
+	SDL_Rect paddleRect = { m_x + alpha * m_velocity, m_y, paddleWidth, paddleHeight };
 	gm.renderRect(&paddleRect, &paddleColor);
 }
 
@@ -35,7 +35,7 @@ void Paddle::stopMoving() {
 	m_direction = NONE;
 }
 
-void Paddle::update(int milliseconds) {
+void Paddle::update() {
 	switch (m_direction) {
 	case LEFT:
 		m_velocity = -maxPaddleVelocity;
@@ -49,14 +49,16 @@ void Paddle::update(int milliseconds) {
 	default: break;
 	}
 
-	m_x += m_velocity * milliseconds;
+	m_x += m_velocity;
 	if (m_x < 0) {
 		m_x = 0.0f;
 		m_direction = NONE;
+		m_velocity = 0.0f;
 	}
 	else if (m_x > Game::gameScreenWidth - paddleWidth) {
 		m_x = Game::gameScreenWidth - paddleWidth;
 		m_direction = NONE;
+		m_velocity = 0.0f;
 	}
 }
 

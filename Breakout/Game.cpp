@@ -9,7 +9,6 @@
 #include "Wall.h"
 #include <algorithm>
 
-const float maxFrameTime = 5 * 1000.0 / 60;
 int Game::gameScreenWidth = 480;
 int Game::gameScreenHeight = 640;
 
@@ -28,6 +27,7 @@ Game::Game() {
 	gInputManager.startUp();
 	//SDL_InitSubSystem(SDL_INIT_EVENTS);
 	FPS = 60;
+	updateRate = 100;
 	
 	m_player = Player();
 	for (int r = 0; r < blockR; ++r) {
@@ -51,13 +51,22 @@ Game::~Game() {
 void Game::runGame() {
 	SDL_Event event;
 	bool running = true;
-	float deltaTime = 1000.0/FPS;
 
-	LARGE_INTEGER startTimeData;
-	QueryPerformanceCounter(&startTimeData);
-	int64_t startTime = startTimeData.QuadPart;
+	float msPerUpdate = 1000.0/updateRate;
+
+	LARGE_INTEGER pTimeData;
+	QueryPerformanceCounter(&pTimeData);
+	int64_t previousTime = pTimeData.QuadPart;
+	float lagTime = 0.0f;
 
 	while (running) {
+		LARGE_INTEGER cTimeData;
+		QueryPerformanceCounter(&cTimeData);
+		int64_t currentTime = cTimeData.QuadPart;
+		float elapsedTime = 1000.0 * (float)(currentTime - previousTime) / (float)m_gameClock.getFrequency();
+		previousTime = currentTime;
+		lagTime += elapsedTime;
+
 		//process events
 		while (SDL_PollEvent(&event)) {
 			switch (event.type) {
@@ -85,29 +94,19 @@ void Game::runGame() {
 			m_player.stopPaddle();
 		}
 
-		updateGame(deltaTime);
-		drawGame();
-
-		LARGE_INTEGER endTimeData;
-		QueryPerformanceCounter(&endTimeData);
-		int64_t endTime = endTimeData.QuadPart;
-		deltaTime = 1000.0 * (float)(endTime - startTime) / (float) m_gameClock.getFrequency();
-
-		if (deltaTime > maxFrameTime) {
-			deltaTime = maxFrameTime;
+		while (lagTime >= msPerUpdate) {
+			updateGame();
+			lagTime -= msPerUpdate;
 		}
-
-		if ((deltaTime) < 1000.0 / FPS) {
-			//SDL_Delay(1000.0 / FPS - deltaTime);
-		}
-
-		startTime = endTime;
+		
+		//draws it as fast as the possible
+		drawGame(lagTime / msPerUpdate);
 	}
 }
 
-void Game::drawGame() {
+void Game::drawGame(float alpha) {
 	gGraphicsManager.clear();
-	m_player.drawPaddle(gGraphicsManager);
+	m_player.drawPaddle(gGraphicsManager, alpha);
 	for (int r = 0; r < blockR; ++r) {
 		for (int c = 0; c < blockC; ++c) {
 			if (blocks[r][c] != NULL) {
@@ -123,6 +122,6 @@ void Game::drawGame() {
 	gGraphicsManager.flip();
 }
 
-void Game::updateGame(unsigned int milliseconds) {
-	m_player.update(milliseconds);
+void Game::updateGame() {
+	m_player.update();
 }
